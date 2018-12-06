@@ -7,9 +7,30 @@
 //
 
 #include <iostream>
+#include "Matrix.hpp"
+#include <vector>
+
+using namespace std;
 
 int main(int argc, const char * argv[]) {
-    // insert code here...
-    std::cout << "Hello, World!\n";
-    return 0;
+    
+    
+    //testing the Matrix class
+    vector<vector<double>> tmp1;
+    
+    tmp1.resize(5);
+    for ( int i{0}; i<tmp1.size(); i++) {
+        tmp1[i].resize(10);
+    }
+    
+    for ( int i{0}; i < 5; i++) {
+        for(int j{0}; j< 10; j++) {
+            tmp1[i][j] = 356;
+        }
+    }
+    
+    Matrix tmp2(tmp1);
+    
+    cout<< tmp2;
+    
 }
