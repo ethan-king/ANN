@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		AA0E4C5421BCAE4A0049FDB8 /* BFData.csv in CopyFiles */ = {isa = PBXBuildFile; fileRef = AA0E4C5321BCADFD0049FDB8 /* BFData.csv */; };
 		AA7ABABA21AF1F5A00923C4F /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AA7ABAB921AF1F5A00923C4F /* main.cpp */; };
 		AA7ABAC221AF1F7C00923C4F /* Matrix.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AA7ABAC021AF1F7C00923C4F /* Matrix.cpp */; };
 /* End PBXBuildFile section */
@@ -14,16 +15,18 @@
 /* Begin PBXCopyFilesBuildPhase section */
 		AA7ABAB421AF1F5A00923C4F /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = /usr/share/man/man1/;
-			dstSubfolderSpec = 0;
+			buildActionMask = 12;
+			dstPath = "";
+			dstSubfolderSpec = 16;
 			files = (
+				AA0E4C5421BCAE4A0049FDB8 /* BFData.csv in CopyFiles */,
 			);
-			runOnlyForDeploymentPostprocessing = 1;
+			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		AA0E4C5321BCADFD0049FDB8 /* BFData.csv */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = BFData.csv; sourceTree = "<group>"; };
 		AA7ABAB621AF1F5A00923C4F /* ANN */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = ANN; sourceTree = BUILT_PRODUCTS_DIR; };
 		AA7ABAB921AF1F5A00923C4F /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
 		AA7ABAC021AF1F7C00923C4F /* Matrix.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Matrix.cpp; sourceTree = "<group>"; };
@@ -63,6 +66,7 @@
 				AA7ABAB921AF1F5A00923C4F /* main.cpp */,
 				AA7ABAC021AF1F7C00923C4F /* Matrix.cpp */,
 				AA7ABAC121AF1F7C00923C4F /* Matrix.hpp */,
+				AA0E4C5321BCADFD0049FDB8 /* BFData.csv */,
 			);
 			path = ANN;
 			sourceTree = "<group>";

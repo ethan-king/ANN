@@ -20,17 +20,21 @@ public:
     Matrix(std::vector<std::vector<double> > const &array);
     
     Matrix multiply(double const &value); // scalar multiplication
-    
+    Matrix operator*(double const &); 
     Matrix add(Matrix const &m) const; // addition
+    Matrix operator+(Matrix const&); // + operator
     Matrix subtract(Matrix const &m) const; // subtraction
+    Matrix operator-(Matrix const&);
     Matrix multiply(Matrix const &m) const; // hadamard product
-    
+    Matrix operator*(Matrix const &);
     Matrix dot(Matrix const &m) const; // dot product
     Matrix transpose() const; // transposed matrix
     
     Matrix applyFunction(double (*function)(double)) const; // to apply a function to every element of the matrix
     
     void print(std::ostream &flux) const; // pretty print of the matrix
+    
+    double sumElem() const;
     
 private:
     std::vector<std::vector<double> > array;

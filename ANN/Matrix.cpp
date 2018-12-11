@@ -39,6 +39,19 @@ Matrix Matrix::multiply(double const &value) {
     return result;
 }
 
+Matrix Matrix::operator*(double const &value) {
+    Matrix result(height, width);
+    int i,j;
+    
+    for (i=0 ; i<height ; i++) {
+        for (j=0 ; j<width ; j++) {
+            result.array[i][j] = array[i][j] * value;
+        }
+    }
+    
+    return result;
+}
+
 Matrix Matrix::add(Matrix const &m) const {
     assert(height==m.height && width==m.width);
     
@@ -54,68 +67,87 @@ Matrix Matrix::add(Matrix const &m) const {
     return result;
 }
 
-Matrix Matrix::subtract(Matrix const &m) const
-{
+Matrix Matrix::operator+(Matrix const &m) {
     assert(height==m.height && width==m.width);
     
     Matrix result(height, width);
     int i,j;
     
-    for (i=0 ; i<height ; i++)
-    {
-        for (j=0 ; j<width ; j++)
-        {
-            result.array[i][j] = array[i][j] - m.array[i][j];
+    for (i=0 ; i<height ; i++) {
+        for (j=0 ; j<width ; j++) {
+            result.array[i][j] = array[i][j] + m.array[i][j];
         }
     }
     
     return result;
 }
 
-Matrix Matrix::multiply(Matrix const &m) const
-{
+Matrix Matrix::subtract(Matrix const &m) const {
     assert(height==m.height && width==m.width);
-    
     Matrix result(height, width);
-    int i,j;
-    
-    for (i=0 ; i<height ; i++)
-    {
-        for (j=0 ; j<width ; j++)
-        {
+    for (int i=0 ; i<height ; i++){
+        for (int j=0 ; j<width ; j++){
+            result.array[i][j] = array[i][j] - m.array[i][j];
+        }
+    }
+    return result;
+}
+
+Matrix Matrix::operator-(Matrix const &m) {
+    assert(height==m.height && width==m.width);
+    Matrix result(height, width);
+    for (int i=0 ; i<height ; i++){
+        for (int j=0 ; j<width ; j++){
+            result.array[i][j] = array[i][j] - m.array[i][j];
+        }
+    }
+    return result;
+}
+
+Matrix Matrix::multiply(Matrix const &m) const {
+    assert(height==m.height && width==m.width);
+    Matrix result(height, width);
+    for (int i=0 ; i<height ; i++){
+        for (int j=0 ; j<width ; j++){
             result.array[i][j] = array[i][j] * m.array[i][j];
         }
     }
     return result;
 }
 
+Matrix Matrix::operator*(Matrix const &m) {
+    assert(height==m.height && width==m.width);
+    Matrix result(height, width);
+    for (int i=0 ; i<height ; i++){
+        for (int j=0 ; j<width ; j++){
+            result.array[i][j] = array[i][j] * m.array[i][j];
+        }
+    }
+    return result;
+}
+
+
 Matrix Matrix::dot(Matrix const &m) const{
     assert(width==m.height);
-    
-    int i,j,h, mwidth = m.width;
+    int mwidth = m.width;
     double w=0;
-    
     Matrix result(height, mwidth);
-    
-    for (i=0 ; i<height ; i++){
-        for (j=0 ; j<mwidth ; j++){
-            for (h=0 ; h<width ; h++){
+    for (int i=0 ; i<height ; i++){
+        for (int j=0 ; j<mwidth ; j++){
+            for (int h=0 ; h<width ; h++){
                 w += array[i][h]*m.array[h][j];
             }
             result.array[i][j] = w;
             w=0;
         }
     }
-    
     return result;
 }
 
 Matrix Matrix::transpose() const {// ij element becomes ji element
     Matrix result(width, height);
-    int i,j;
-    
-    for (i=0 ; i<width ; i++){
-        for (j=0 ; j<height ; j++){
+    for (int i=0 ; i<width ; i++){
+        for (int j=0 ; j<height ; j++){
             result.array[i][j] = array[j][i];
         }
     }
@@ -164,6 +196,18 @@ void Matrix::print(std::ostream &flux) const {// pretty print, taking into accou
         }
         flux << std::endl;
     }
+}
+
+double Matrix::sumElem() const {
+    
+    double result{};
+    
+    for ( int i{0}; i<height; i++) {
+        for( int j{0}; j<width; j++){
+            result += array[i][j];
+        }
+    }
+    return result;
 }
 
 std::ostream& operator<<(std::ostream &flux, Matrix const &m) {
