@@ -38,8 +38,8 @@ public:
     
 private:
     std::vector<std::vector<double> > array;
-    int height;
-    int width;
+    size_t height;
+    size_t width;
 };
 
 std::ostream& operator<<(std::ostream &flux, Matrix const &m); // overloading << operator to print easily

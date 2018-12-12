@@ -26,6 +26,7 @@ double learningRate{0.005};
 
 //function prototypes
 void forwardProp( const vector<double>&);
+void backProp(const vector<double> &);
 
 
 void loadTrainingCSV(const char* filename, vector<vector<double>> &input, vector<vector<double>> &output){
@@ -164,12 +165,10 @@ int main(int argc, const char * argv[]) {
     
     //Turn our input and output matrices into Matrix class
     
-    int inputNeuron = input[0].size();
-    int outputNeuron = output[0].size();
-    int hiddenNeuron{8};
+    size_t inputNeuron = input[0].size();
+    size_t outputNeuron = output[0].size();
+    size_t hiddenNeuron{8};
     
-
-
     W1 = Matrix(inputNeuron, hiddenNeuron);
     W2 = Matrix(hiddenNeuron, outputNeuron);
     B1 = Matrix(1, hiddenNeuron);
@@ -190,7 +189,7 @@ int main(int argc, const char * argv[]) {
     
     //iterate through given # of epochs
     cout<< setw(6)<< "Epoch " << setw(15)<< "Error"<<endl;
-    int epochs{20};
+    int epochs{50};
     
     for (size_t h{0}; h<epochs; h++){
         //train NN on our input and output matrices
@@ -200,28 +199,12 @@ int main(int argc, const char * argv[]) {
             //X is set to each vector in input
             
             forwardProp(input[i]);
-            
-            Y2 = Matrix({output[i]}); //expected output
-            
             //create dot prod vector to sum all entries
             
+            //compare vs expected Output Y2
+            backProp(output[i]);
             
             SSE += (Y2.sumElem() - Y.sumElem())*(Y2.sumElem() - Y.sumElem());
-            
-            
-            //compare vs expected Output Y2
-            
-            dJdB2 = (Y-Y2)*((H.dot(W2)+(B2)).applyFunction(reLuPrime));
-            dJdB1 = dJdB2.dot(W2.transpose())*((X.dot(W1)+B1).applyFunction(reLuPrime));
-            dJdW2 = H.transpose().dot(dJdB2);
-            dJdW1 = X.transpose().dot(dJdB1);
-            
-            // update weights
-            W1 = W1-(dJdW1*learningRate);
-            W2 = W2-(dJdW2*learningRate);
-            B1 = B1-(dJdB1*(learningRate));
-            B2 = B2-(dJdB2*(learningRate));
-            
             //double squaredError{(Y2-Y)*(Y2-Y)};
         }
         
@@ -237,36 +220,40 @@ int main(int argc, const char * argv[]) {
 
     for( size_t i{roundSzT(input.size()*partition)}; i < input.size(); i++){
         
-        
         forwardProp(input[i]);
         
         Y2 = Matrix({output[i]}); //expected output
         
         //create dot prod vector to sum all entries
-
         SSE += (Y2.sumElem() - Y.sumElem())*(Y2.sumElem() - Y.sumElem());
         ctr++;
     }
     
     double MSE = SSE/ctr;
-    
     cout<< setw(26) << MSE <<endl;
-    
     
     cout<<"done."<<endl;
     return 0;
-    
-    
-    
 }
 
 
 void forwardProp( const vector<double>& in) {
-    
     X = Matrix({in});
-    
     H = X.dot(W1).add(B1).applyFunction(reLu);
     Y = H.dot(W2).add(B2).applyFunction(reLu);
-
 }
 
+void backProp( const vector<double>& out) {
+    Y2 = Matrix({out});
+    
+    dJdB2 = (Y-Y2)*((H.dot(W2)+(B2)).applyFunction(reLuPrime));
+    dJdB1 = dJdB2.dot(W2.transpose())*((X.dot(W1)+B1).applyFunction(reLuPrime));
+    dJdW2 = H.transpose().dot(dJdB2);
+    dJdW1 = X.transpose().dot(dJdB1);
+    
+    // update weights
+    W1 = W1-(dJdW1*learningRate);
+    W2 = W2-(dJdW2*learningRate);
+    B1 = B1-(dJdB1*learningRate);
+    B2 = B2-(dJdB2*learningRate);
+}
