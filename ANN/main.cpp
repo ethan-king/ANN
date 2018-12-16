@@ -21,38 +21,44 @@ using namespace std;
 Matrix X, W1, H, W2, Y, B1, B2, Y2, dJdB1, dJdB2, dJdW1, dJdW2;
 string filename = "BFData.csv";
 double learningRate{0.005};
-
-
+//contains normailzation values / max values in each column
+vector<double> maxIOVal{};
+//variables to hold training data
+vector<vector<double>> input, output;
+size_t hiddenNeuron{8};
+//Training set partition size = 1 - validation size
+double ptTrain{.80};
+int epochs{15};
 
 //function prototypes
+void loadTrainingCSV(const string&, vector<vector<double>> &, vector<vector<double>> &);
 void forwardProp( const vector<double>&);
 void backProp(const vector<double> &);
 
 
-void loadTrainingCSV(const char* filename, vector<vector<double>> &input, vector<vector<double>> &output){
-}
+
 
 double random(double x){
     return (double)(rand() % 10000 + 1)/10000-0.5;
 }
 
-double sigmoid(double x){
-    return 1/(1+exp(-x));
-}
-
-double sigmoidePrime(double x){
-    return exp(-x)/(pow(1+exp(-x), 2));
-}
-
-double stepFunction(double x){
-    if(x>0.9){
-        return 1.0;
-    }
-    if(x<0.1){
-        return 0.0;
-    }
-    return x;
-}
+//double sigmoid(double x){
+//    return 1/(1+exp(-x));
+//}
+//
+//double sigmoidePrime(double x){
+//    return exp(-x)/(pow(1+exp(-x), 2));
+//}
+//
+//double stepFunction(double x){
+//    if(x>0.9){
+//        return 1.0;
+//    }
+//    if(x<0.1){
+//        return 0.0;
+//    }
+//    return x;
+//}
 
 double reLu(double x){
     if (x < 0) return 0;
@@ -72,13 +78,211 @@ size_t roundSzT(double x) {
 
 int main(int argc, const char * argv[]) {
     
-    //contains normailzation values / max values in each column
-    vector<double> maxIOVal{};
+    //display menu
+    //1- load csv, specify # of attributes
+    //2- define hidden nodes
+    //3- set learning rate
+    //4- set activation function reLu or sigmoid
+    //5- set partition  %
+    //6 -
     
+    unsigned int selection = 0, initialized=0; //menu selection
     
-    //variables to hold training data
-    vector<vector<double>> input, output;
-    
+    cout << "Black Friday Neural Network Project (Codename Titan)\n" ;
+    while (selection != 8) { // Creates a repeating menu of options unless 5 is chosen to ens the program
+
+        cout<<"Current settings: "<<filename<< "; Hidden Nodes "<< hiddenNeuron <<"; Learning Rate "<< learningRate<<"; Epochs "<<epochs<<"; Partition Size "<<ptTrain<<";"<<endl;
+        cout<<"-----------------------------------------"<<endl;
+        
+        cout << "Please enter one of the following:" << endl
+        << "1) Run training" << endl
+        << "2) Change file name for training" << endl
+        << "3) Change number of nodes in hidden layer" << endl
+        << "4) Change learning rate" << endl
+        << "5) Change training epochs" << endl
+        << "6) Change partition size for training set / test set" << endl
+        << "7) Run test" << endl
+        << "8) End program" << endl
+        << ">> ";
+        
+        cin >> selection;
+        
+        if (!cin){
+            cout << "Incorrect input. Please try again.\n";
+            cin.clear();
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+        }
+        
+        if (selection == 1) {
+            cout << "\n\nInitializing...\n\n";
+            loadTrainingCSV(filename, input, output);
+            initialized = 1; //initilization marker that a training file has been used
+            //LoadTraining(trainingFile); //Need to pass all loading of data to a function and use main only for menu and initialization
+            
+            
+            //Turn our input and output matrices into Matrix class
+            size_t inputNeuron = input[0].size();
+            size_t outputNeuron = output[0].size();
+            
+            
+            W1 = Matrix(inputNeuron, hiddenNeuron);
+            W2 = Matrix(hiddenNeuron, outputNeuron);
+            B1 = Matrix(1, hiddenNeuron);
+            B2 = Matrix(1, outputNeuron);
+            
+            W1 = W1.applyFunction(random);
+            W2 = W2.applyFunction(random);
+            B1 = B1.applyFunction(random);
+            B2 = B2.applyFunction(random);
+            
+            //iterate through given # of epochs
+            cout<< setw(6)<< "Epoch " << setw(15)<< "Error"<<endl;
+            
+            
+            for (size_t h{0}; h<epochs; h++){
+                //train NN on our input and output matrices
+                double SSE{0};
+                
+                for( size_t i{0}; i< roundSzT( input.size()*ptTrain ); i++) {
+                    //X is set to each vector in input
+                    
+                    forwardProp(input[i]);
+                    //create dot prod vector to sum all entries
+                    
+                    //compare vs expected Output Y2
+                    backProp(output[i]);
+                    
+                    SSE += 0.5*(Y2.sumElem() - Y.sumElem())*(Y2.sumElem() - Y.sumElem());
+                    //double squaredError{(Y2-Y)*(Y2-Y)};
+                }
+                
+                double MSE = SSE/roundSzT( input.size()*ptTrain ); //
+                
+                cout<< setw(6)<< h <<setw(15)<< MSE <<endl;;
+            }
+            cout<<"\nNeural network trained!"<<endl;
+        }
+        else if (selection == 2) {
+            
+            cout << "\nPlease enter the new filename followed by its extension: ";
+            string temp{""};
+            while (!(cin>>temp)) {
+                cout<<"Please enter a file name"<<endl;
+                cin.clear();
+                cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            }
+            ifstream infile(temp);
+            if(!infile ) {
+                cout<<"Error opening file"<<endl;
+            }
+            else {
+                filename = temp;
+                cout << "\nFilename changed to "<< filename<< "!"<<endl;
+            }
+            infile.close();
+        }
+        else if (selection == 3) {
+            cout << "\nPlease enter the number of nodes for the neural network: ";
+            
+            //catching for error inputs
+            while (!(cin >> hiddenNeuron)) {
+                cout << "Incorrect input. Please try again.\n";
+                cin.clear();
+                cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            }
+            
+            cout << "\nHidden neuron amount changed to "<< hiddenNeuron<< "!"<<endl;
+            
+        }
+        else if (selection == 4) {
+            cout << "\nPlease enter the new learning rate as a percent (ex: 0.05): ";
+            
+            while (!(cin >> learningRate)) {
+                cout << "Incorrect input. Please try again.\n";
+                cin.clear();
+                cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            }
+            
+            cout << "\nlearning rate changed to "<< learningRate<<"!\n";
+        }
+        else if (selection == 5) {
+            cout << "\nPlease enter the number of epochs to train: ";
+            
+            while (!(cin >> epochs)) {
+                cout << "Incorrect input. Please try again.\n";
+                cin.clear();
+                cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            }
+            
+            cout << "\nepochs changed to "<< epochs<<"!\n";
+            
+        }
+        
+        else if (selection == 6) {
+            cout << "\nPlease enter the partition size for the training set: ";
+            
+            while (!(cin >> ptTrain)) {
+                cout << "Incorrect input. Please try again.\n";
+                cin.clear();
+                cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            }
+            
+            cout << "\npartition size changed to "<< ptTrain<<"!\n";
+            
+        }
+        else if (selection == 7) {
+            if (initialized == 0) {
+                cout<<"Must train the NN before validation. Please run option 1 first."<<endl;
+            }
+            else {
+                cout <<"\nRunning training set through the neural network"<<endl;
+                //Run validation set through updated NN
+                double SSE {0};
+                int ctr{0};
+                cout<< setw(11)<< "Validation" << setw(15)<< "Error"<<endl;
+                
+                for( size_t i{roundSzT(input.size()*ptTrain)}; i < input.size(); i++){
+                    
+                    forwardProp(input[i]);
+                    
+                    Y2 = Matrix({output[i]}); //expected output
+                    
+                    //create dot prod vector to sum all entries
+                    cout<< setw(11) << i << setw(15) << (Y2.sumElem() - Y.sumElem())*(Y2.sumElem() - Y.sumElem())<<endl;
+                    SSE += 0.5*(Y2.sumElem() - Y.sumElem())*(Y2.sumElem() - Y.sumElem());
+                    
+                    ctr++;
+                }
+                
+                double MSE = SSE/ctr;
+                cout<< setw(11)<<"MSE"<<setw(15) << MSE <<endl;
+                
+                cout<<"done."<<endl;
+            }
+            
+        }
+        else if (selection == 8)
+            cout << "\nGoodbye";
+//        else if (selection > 8) {
+//            cout<< "Please enter a valid menu selection"<<endl;
+//            cin>> selection;
+//        }
+        
+        
+        
+//        else {
+//            if (!(cin >> selection)) {
+//                cout << "Incorrect input. Please try again.\n";
+//                cin.clear();
+//                cin.ignore(numeric_limits<streamsize>::max(), '\n');
+//            }
+//        }
+        
+        else cout << "Please enter a valid menu selection"<<endl<<endl;
+    }
+}
+
+void loadTrainingCSV(const string &filename, vector<vector<double>> &input, vector<vector<double>> &output){
     //open training data csv file
     ifstream fileStream(filename);
     //########### MUST SPECIFY number of attributes in .csv file
@@ -128,17 +332,11 @@ int main(int argc, const char * argv[]) {
             input.push_back(tempVect);
             output.push_back(tempVect2);
         }
-        
-        cout<< "Input vetor:"<<endl;
-        cout<< input<< endl;
-        cout<< "Output vector:"<<endl;
-        cout<< output<< endl;
-        
+ 
         vector<vector<double>> maxValVect{maxIOVal};
-        cout<< "Max Values:" << endl;
-        cout<< maxValVect<<endl;
         
         fileStream.close();
+        cout<< "Successfully loaded "<<filename<<" into the input and output vectors"<<endl;
     }
     
     
@@ -156,86 +354,8 @@ int main(int argc, const char * argv[]) {
     for( int i{0}; i< output.size(); i++) {
         output[i][0] /= *(maxIOVal.end()-1);
     }
-    
-    cout<<"Input after normalization:"<<endl;
-    cout<< input<<endl;
-    cout<<"Output after normalization:"<<endl;
-    cout<< output<< endl;
-    
-    
-    //Turn our input and output matrices into Matrix class
-    
-    size_t inputNeuron = input[0].size();
-    size_t outputNeuron = output[0].size();
-    size_t hiddenNeuron{8};
-    
-    W1 = Matrix(inputNeuron, hiddenNeuron);
-    W2 = Matrix(hiddenNeuron, outputNeuron);
-    B1 = Matrix(1, hiddenNeuron);
-    B2 = Matrix(1, outputNeuron);
-    
-    W1 = W1.applyFunction(random);
-    W2 = W2.applyFunction(random);
-    B1 = B1.applyFunction(random);
-    B2 = B2.applyFunction(random);
-    
-    
-    //compute Output Y
-    //X is first vector in input
-    
-    //Training set partition size = 1 - validation size
-    double partition{.80};
-    
-    
-    //iterate through given # of epochs
-    cout<< setw(6)<< "Epoch " << setw(15)<< "Error"<<endl;
-    int epochs{50};
-    
-    for (size_t h{0}; h<epochs; h++){
-        //train NN on our input and output matrices
-        double SSE{0};
-        
-        for( size_t i{0}; i< roundSzT( input.size()*partition ); i++) {
-            //X is set to each vector in input
-            
-            forwardProp(input[i]);
-            //create dot prod vector to sum all entries
-            
-            //compare vs expected Output Y2
-            backProp(output[i]);
-            
-            SSE += (Y2.sumElem() - Y.sumElem())*(Y2.sumElem() - Y.sumElem());
-            //double squaredError{(Y2-Y)*(Y2-Y)};
-        }
-        
-        double MSE = SSE/roundSzT( input.size()*partition ); //
-        
-        cout<< setw(6)<< h <<setw(15)<< MSE <<endl;;
-    }
-    
-    //Run validation set through updated NN
-    double SSE {0};
-    int ctr{0};
-    cout<< setw(11)<< "Validation" << setw(15)<< "Error"<<endl;
 
-    for( size_t i{roundSzT(input.size()*partition)}; i < input.size(); i++){
-        
-        forwardProp(input[i]);
-        
-        Y2 = Matrix({output[i]}); //expected output
-        
-        //create dot prod vector to sum all entries
-        SSE += (Y2.sumElem() - Y.sumElem())*(Y2.sumElem() - Y.sumElem());
-        ctr++;
-    }
-    
-    double MSE = SSE/ctr;
-    cout<< setw(26) << MSE <<endl;
-    
-    cout<<"done."<<endl;
-    return 0;
 }
-
 
 void forwardProp( const vector<double>& in) {
     X = Matrix({in});
