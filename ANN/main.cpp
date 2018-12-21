@@ -20,6 +20,7 @@ using namespace std;
 
 Matrix X, W1, H, W2, Y, B1, B2, Y2, dJdB1, dJdB2, dJdW1, dJdW2;
 string filename = "BFData.csv";
+string outputFilename = "Weights.txt";
 double learningRate{0.005};
 //contains normailzation values / max values in each column
 vector<double> maxIOVal{};
@@ -27,8 +28,8 @@ vector<double> maxIOVal{};
 vector<vector<double>> input, output;
 size_t hiddenNeuron{8};
 //Training set partition size = 1 - validation size
-double ptTrain{.80};
-int epochs{15};
+double ptTrain{.80}, errTol{0.001};
+unsigned int epochs{15};
 
 //function prototypes
 void loadTrainingCSV(const string&, vector<vector<double>> &, vector<vector<double>> &);
@@ -89,9 +90,9 @@ int main(int argc, const char * argv[]) {
     unsigned int selection = 0, initialized=0; //menu selection
     
     cout << "Black Friday Neural Network Project (Codename Titan)\n" ;
-    while (selection != 8) { // Creates a repeating menu of options unless 5 is chosen to ens the program
+    while (selection != 10) { // Creates a repeating menu of options unless 9 is chosen to ens the program
 
-        cout<<"Current settings: "<<filename<< "; Hidden Nodes "<< hiddenNeuron <<"; Learning Rate "<< learningRate<<"; Epochs "<<epochs<<"; Partition Size "<<ptTrain<<";"<<endl;
+        cout<<"Current settings: "<<filename<< "; Hidden Nodes "<< hiddenNeuron <<"; Learning Rate "<< learningRate<<"; Epochs "<<epochs<<"; Partition Size "<<ptTrain<<"; Error "<< errTol <<endl;
         cout<<"-----------------------------------------"<<endl;
         
         cout << "Please enter one of the following:" << endl
@@ -101,8 +102,10 @@ int main(int argc, const char * argv[]) {
         << "4) Change learning rate" << endl
         << "5) Change training epochs" << endl
         << "6) Change partition size for training set / test set" << endl
-        << "7) Run test" << endl
-        << "8) End program" << endl
+        << "7) Change error tolerance" << endl
+        << "8) Run test" << endl
+        << "9) Save weights"<<endl
+        << "10) End program"<<endl
         << ">> ";
         
         cin >> selection;
@@ -138,8 +141,9 @@ int main(int argc, const char * argv[]) {
             //iterate through given # of epochs
             cout<< setw(6)<< "Epoch " << setw(15)<< "Error"<<endl;
             
+            double MSE{1};
             
-            for (size_t h{0}; h<epochs; h++){
+            for (size_t h{0}; h<epochs && MSE > errTol; h++){
                 //train NN on our input and output matrices
                 double SSE{0};
                 
@@ -156,7 +160,7 @@ int main(int argc, const char * argv[]) {
                     //double squaredError{(Y2-Y)*(Y2-Y)};
                 }
                 
-                double MSE = SSE/roundSzT( input.size()*ptTrain ); //
+                MSE = SSE/roundSzT( input.size()*ptTrain ); //
                 
                 cout<< setw(6)<< h <<setw(15)<< MSE <<endl;;
             }
@@ -197,8 +201,8 @@ int main(int argc, const char * argv[]) {
         else if (selection == 4) {
             cout << "\nPlease enter the new learning rate as a percent (ex: 0.05): ";
             
-            while (!(cin >> learningRate)) {
-                cout << "Incorrect input. Please try again.\n";
+            while (!(cin >> learningRate) || (learningRate >1) || (learningRate <= 0)) {
+                cout << "Input: (0,1]. Please try again.\n";
                 cin.clear();
                 cin.ignore(numeric_limits<streamsize>::max(), '\n');
             }
@@ -214,6 +218,7 @@ int main(int argc, const char * argv[]) {
                 cin.ignore(numeric_limits<streamsize>::max(), '\n');
             }
             
+            if ( epochs > 9000) cout << "epochs are over 9000!"<< endl;
             cout << "\nepochs changed to "<< epochs<<"!\n";
             
         }
@@ -230,7 +235,20 @@ int main(int argc, const char * argv[]) {
             cout << "\npartition size changed to "<< ptTrain<<"!\n";
             
         }
+        
         else if (selection == 7) {
+            cout << "\nPlease enter the value for error tolerance: ";
+            
+            while (!(cin >> errTol)) {
+                cout << "Incorrect input. Please try again.\n";
+                cin.clear();
+                cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            }
+            
+            cout << "\nError tolerance changed to "<< errTol<<"!\n";
+            
+        }
+        else if (selection == 8) {
             if (initialized == 0) {
                 cout<<"Must train the NN before validation. Please run option 1 first."<<endl;
             }
@@ -259,9 +277,45 @@ int main(int argc, const char * argv[]) {
                 
                 cout<<"done."<<endl;
             }
+        
             
         }
-        else if (selection == 8)
+        
+        
+        else if (selection == 9) {
+            cout << "\nPlease enter a file name for the weights file: ";
+            
+            while (!(cin >> outputFilename)) {
+                cout << "Incorrect filename. Please try again.\n";
+                cin.clear();
+                cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            }
+            
+            ofstream weightOut( outputFilename, ios::out);
+            if (!weightOut){
+                cerr<< "File could not be opened"<< endl;
+                exit(EXIT_FAILURE);
+            }
+            
+            weightOut << "W1"<<endl;
+            W1.write(weightOut);
+            
+            weightOut <<endl<< "B1"<<endl;
+            B1.write(weightOut);
+            
+            weightOut <<endl<< "W2"<<endl;
+            W2.write(weightOut);
+            
+            weightOut <<endl<< "B2"<<endl;
+            B2.write(weightOut);
+            
+            
+            
+            cout << "\nWeights saved to "<<outputFilename<<"!\n";
+            
+        }
+        
+        else if (selection == 10)
             cout << "\nGoodbye";
 //        else if (selection > 8) {
 //            cout<< "Please enter a valid menu selection"<<endl;

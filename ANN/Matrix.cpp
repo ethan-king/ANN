@@ -198,6 +198,15 @@ void Matrix::print(std::ostream &flux) const {// pretty print, taking into accou
     }
 }
 
+void Matrix::write(std::ofstream &file) {
+    for( int i{0}; i< height; i++){
+        for( int j{0}; j<width; j++) {
+            file<< array[i][j]<<' ';
+        }
+        file<< std::endl;
+    }
+}
+
 double Matrix::sumElem() const {
     
     double result{};

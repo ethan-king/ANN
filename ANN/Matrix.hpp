@@ -11,6 +11,7 @@
 
 #include <vector>
 #include <iostream>
+#include <fstream>
 
 class Matrix
 {
@@ -33,6 +34,7 @@ public:
     Matrix applyFunction(double (*function)(double)) const; // to apply a function to every element of the matrix
     
     void print(std::ostream &flux) const; // pretty print of the matrix
+    void write(std::ofstream&);
     
     double sumElem() const;
     
