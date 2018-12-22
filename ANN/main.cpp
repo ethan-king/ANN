@@ -29,8 +29,7 @@ vector<vector<double>> input, output;
 size_t hiddenNeuron{8};
 //Training set partition size = 1 - validation size
 double ptTrain{.80}, errTol{0.001};
-unsigned int epochs{15};
-
+unsigned int epochs{15}, numAttr{8};;
 //function prototypes
 void loadTrainingCSV(const string&, vector<vector<double>> &, vector<vector<double>> &);
 void forwardProp( const vector<double>&);
@@ -51,16 +50,6 @@ double random(double x){
 //    return exp(-x)/(pow(1+exp(-x), 2));
 //}
 //
-//double stepFunction(double x){
-//    if(x>0.9){
-//        return 1.0;
-//    }
-//    if(x<0.1){
-//        return 0.0;
-//    }
-//    return x;
-//}
-
 double reLu(double x){
     if (x < 0) return 0;
     else return x;
@@ -78,15 +67,7 @@ size_t roundSzT(double x) {
 
 
 int main(int argc, const char * argv[]) {
-    
-    //display menu
-    //1- load csv, specify # of attributes
-    //2- define hidden nodes
-    //3- set learning rate
-    //4- set activation function reLu or sigmoid
-    //5- set partition  %
-    //6 -
-    
+
     unsigned int selection = 0, initialized=0; //menu selection
     
     cout << "Black Friday Neural Network Project (Codename Titan)\n" ;
@@ -175,6 +156,8 @@ int main(int argc, const char * argv[]) {
                 cin.clear();
                 cin.ignore(numeric_limits<streamsize>::max(), '\n');
             }
+            
+            
             ifstream infile(temp);
             if(!infile ) {
                 cout<<"Error opening file"<<endl;
@@ -182,8 +165,16 @@ int main(int argc, const char * argv[]) {
             else {
                 filename = temp;
                 cout << "\nFilename changed to "<< filename<< "!"<<endl;
+                //after changing filename, set the number of attributes / columns in the file
+                cout << "\nPlease enter the number columns in the csv file: ";
+                //catching for error inputs
+                while (!(cin >> numAttr)) {
+                    cout << "Incorrect input. Please try again.\n";
+                    cin.clear();
+                    cin.ignore(numeric_limits<streamsize>::max(), '\n');
             }
             infile.close();
+            }
         }
         else if (selection == 3) {
             cout << "\nPlease enter the number of nodes for the neural network: ";
@@ -309,29 +300,12 @@ int main(int argc, const char * argv[]) {
             weightOut <<endl<< "B2"<<endl;
             B2.write(weightOut);
             
-            
-            
             cout << "\nWeights saved to "<<outputFilename<<"!\n";
-            
         }
         
         else if (selection == 10)
             cout << "\nGoodbye";
-//        else if (selection > 8) {
-//            cout<< "Please enter a valid menu selection"<<endl;
-//            cin>> selection;
-//        }
-        
-        
-        
-//        else {
-//            if (!(cin >> selection)) {
-//                cout << "Incorrect input. Please try again.\n";
-//                cin.clear();
-//                cin.ignore(numeric_limits<streamsize>::max(), '\n');
-//            }
-//        }
-        
+
         else cout << "Please enter a valid menu selection"<<endl<<endl;
     }
 }
@@ -340,7 +314,7 @@ void loadTrainingCSV(const string &filename, vector<vector<double>> &input, vect
     //open training data csv file
     ifstream fileStream(filename);
     //########### MUST SPECIFY number of attributes in .csv file
-    int numAttr{8};
+
     maxIOVal.resize(numAttr);
     
     //test if file is opened
@@ -396,7 +370,7 @@ void loadTrainingCSV(const string &filename, vector<vector<double>> &input, vect
     
     //Normalize all terms by dividing by Max Value
     
-    //input & output
+    //input matrix
     for( int i{0}; i<maxIOVal.size(); i++ ){ //iterate over maxVal vector
         for( int j{0}; j<input.size(); j++) { //iterate over input vector<vector<double>>
             input[j][i] /= maxIOVal[i];
@@ -420,6 +394,7 @@ void forwardProp( const vector<double>& in) {
 void backProp( const vector<double>& out) {
     Y2 = Matrix({out});
     
+    //calculate gradients
     dJdB2 = (Y-Y2)*((H.dot(W2)+(B2)).applyFunction(reLuPrime));
     dJdB1 = dJdB2.dot(W2.transpose())*((X.dot(W1)+B1).applyFunction(reLuPrime));
     dJdW2 = H.transpose().dot(dJdB2);
